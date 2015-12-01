@@ -26,6 +26,7 @@ func main() {
 	sourcePPT := "Template.pptx"
 	tempFolder := "tmp"
 	targetPPT := "new.pptx"
+	newImage := "img.jpg"
 
 	err := unzip(getAbsolutePath(sourcePPT), getAbsolutePath(tempFolder))
 	if err != nil {
@@ -41,6 +42,13 @@ func main() {
 	err = replaceText(getAbsolutePath(slidePath),replacements)
 	if err != nil {
 		fmt.Println("Error while content replacing",err)
+	}
+
+	targetImgPath := filepath.Join(tempFolder,pptFolder,mediaFolder,templateImgName)
+
+	err = replaceImage(getAbsolutePath(newImage),getAbsolutePath(targetImgPath))
+	if err != nil {
+		fmt.Println("Error while image replacing",err)
 	}
 
 	err = zipit(getAbsolutePath(tempFolder), getAbsolutePath(targetPPT))
@@ -68,6 +76,26 @@ func replaceText(filename string, replacements []SlideReplacement)error {
 	}
 
 	err = ioutil.WriteFile(filename,[]byte(content), 0755)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func replaceImage(sourceImageFilename, targetImageFilename string) error {
+	r, err := os.Open(sourceImageFilename)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	w, err := os.Create(targetImageFilename)
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+
+	_, err = io.Copy(w, r)
 	if err != nil {
 		return err
 	}
