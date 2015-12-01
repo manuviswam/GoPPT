@@ -7,7 +7,20 @@ import (
 	"path/filepath"
 	"io"
 	"strings"
+	"io/ioutil"
 )
+
+const (
+	mediaFolder  = "media"
+	pptFolder = "ppt"
+	templateImgName = "image1.jpg"
+	slideFolder = "slides"
+	templateSlideName = "slide1.xml"
+)
+
+type SlideReplacement struct {
+	PlaceHolder, Replacement string
+}
 
 func main() {
 	sourcePPT := "Template.pptx"
@@ -17,6 +30,17 @@ func main() {
 	err := unzip(getAbsolutePath(sourcePPT), getAbsolutePath(tempFolder))
 	if err != nil {
 		fmt.Println("Error unziping : ", err)
+	}
+
+	slidePath := filepath.Join(tempFolder,pptFolder,slideFolder,templateSlideName)
+
+	replacements := make([]SlideReplacement,1)
+	replacements = append(replacements,SlideReplacement{ PlaceHolder: "#title#", Replacement: "This is replaced title"})
+	replacements = append(replacements,SlideReplacement{ PlaceHolder: "#footer#", Replacement: "This is replaced footer"})
+
+	err = replaceText(getAbsolutePath(slidePath),replacements)
+	if err != nil {
+		fmt.Println("Error while content replacing",err)
 	}
 
 	err = zipit(getAbsolutePath(tempFolder), getAbsolutePath(targetPPT))
@@ -29,6 +53,25 @@ func main() {
 func getAbsolutePath(relPath string)string  {
 	wd,_ := os.Getwd()
 	return filepath.Join(wd, relPath)
+}
+
+func replaceText(filename string, replacements []SlideReplacement)error {
+	contentBytes,err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+
+	content := string(contentBytes)
+
+	for _,replacement := range replacements  {
+		content = strings.Replace(content, replacement.PlaceHolder, replacement.Replacement, -1)
+	}
+
+	err = ioutil.WriteFile(filename,[]byte(content), 0755)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func unzip(archive, target string) error {
