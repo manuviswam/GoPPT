@@ -4,9 +4,11 @@ import (
 	"os"
 	"io/ioutil"
 	"strings"
+
+	m "github.com/manuviswam/GoPPT/model"
 )
 
-func ReplaceTextInFile(filename string, replacements []SlideReplacement)error {
+func ReplaceTextInFile(filename string, replacements []m.SlideReplacement)error {
 	contentBytes,err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
