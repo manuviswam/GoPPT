@@ -8,17 +8,13 @@ import (
 	z "github.com/manuviswam/GoPPT/zipper"
 	m "github.com/manuviswam/GoPPT/model"
 	fo "github.com/manuviswam/GoPPT/fileops"
+	c "github.com/manuviswam/GoPPT/constants"
 )
 
 const (
-	mediaFolder  = "media"
-	pptFolder = "ppt"
 	templateImgName = "image1.jpg"
-	slideFolder = "slides"
 	templateSlideName = "slide1.xml"
 )
-
-
 
 func main() {
 	sourcePPT := "Template.pptx"
@@ -31,7 +27,7 @@ func main() {
 		fmt.Println("Error unziping : ", err)
 	}
 
-	slidePath := filepath.Join(tempFolder,pptFolder,slideFolder,templateSlideName)
+	slidePath := filepath.Join(tempFolder,c.PPTFolder,c.SlideFolder,templateSlideName)
 
 	replacements := make([]m.SlideReplacement,1)
 	replacements = append(replacements,m.SlideReplacement{ PlaceHolder: "#title#", Replacement: "This is replaced title"})
@@ -42,7 +38,7 @@ func main() {
 		fmt.Println("Error while content replacing",err)
 	}
 
-	targetImgPath := filepath.Join(tempFolder,pptFolder,mediaFolder,templateImgName)
+	targetImgPath := filepath.Join(tempFolder,c.PPTFolder,c.MediaFolder,templateImgName)
 
 	err = fo.CopyFile(getAbsolutePath(newImage),getAbsolutePath(targetImgPath))
 	if err != nil {
