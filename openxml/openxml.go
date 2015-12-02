@@ -61,22 +61,7 @@ func createRelations(pptRoot, slideName string)(string, error) {
 	relationId := "rid100" //todo
 	newRelationNode := fmt.Sprintf(relationshipXmlNode, relationId, slideName)
 
-	presentationRelContentBytes, err := ioutil.ReadFile(presentationRelPath)
-	if err != nil {
-		return "", err
-	}
-
-	presentationRelContent := string(presentationRelContentBytes)
-
-	re := regexp.MustCompile(relationshipsRegex)
-
-	relationships := re.FindStringSubmatch(presentationRelContent)[2]
-
-	relationships += newRelationNode
-
-	presentationRelContent = re.ReplaceAllString(presentationRelContent, "$1" + relationships + "$3")
-
-	return relationId, ioutil.WriteFile(presentationRelPath, []byte(presentationRelContent), 0755)
+	return relationId, replaceInXmlFile(presentationRelPath, newRelationNode, relationshipsRegex)
 }
 
 func addSlideInPresentation(pptRoot, rid string)error {
@@ -84,42 +69,31 @@ func addSlideInPresentation(pptRoot, rid string)error {
 	slId := 300 //todo
 	newSlIdNode := fmt.Sprintf(presentationSlIdNode, slId, rid)
 
-	presentationContentBytes, err := ioutil.ReadFile(presentationXmlPath)
-	if err != nil {
-		return err
-	}
-
-	presentationContent := string(presentationContentBytes)
-
-	re := regexp.MustCompile(presentationSlIdLstRegex)
-
-	slIds := re.FindStringSubmatch(presentationContent)[2]
-
-	slIds += newSlIdNode
-
-	presentationContent = re.ReplaceAllString(presentationContent,"$1" + slIds + "$3")
-
-	return ioutil.WriteFile(presentationXmlPath, []byte(presentationContent), 0755)
+	return replaceInXmlFile(presentationXmlPath, newSlIdNode, presentationSlIdLstRegex)
 }
 
 func addSlideContentTypeInContentTypes(pptRoot, newSlideName string)error {
 	contentTypeXmlPath := filepath.Join(pptRoot, "[Content_Types].xml")
 	newContentTypeNode := fmt.Sprintf(contentTypeNode, newSlideName)
 
-	contentBytes, err := ioutil.ReadFile(contentTypeXmlPath)
+	return replaceInXmlFile(contentTypeXmlPath, newContentTypeNode, contentTypeRegex)
+}
+
+func replaceInXmlFile(xmlPath, newNode, regexString string) error {
+	presentationRelContentBytes, err := ioutil.ReadFile(xmlPath)
 	if err != nil {
 		return err
 	}
 
-	content := string(contentBytes)
+	presentationRelContent := string(presentationRelContentBytes)
 
-	re := regexp.MustCompile(contentTypeRegex)
+	re := regexp.MustCompile(regexString)
 
-	contentTypes := re.FindStringSubmatch(content)[2]
+	relationships := re.FindStringSubmatch(presentationRelContent)[2]
 
-	contentTypes += newContentTypeNode
+	relationships += newNode
 
-	content = re.ReplaceAllString(content, "$1" + contentTypes + "$3")
+	presentationRelContent = re.ReplaceAllString(presentationRelContent, "$1" + relationships + "$3")
 
-	return ioutil.WriteFile(contentTypeXmlPath, []byte(content), 0755)
+	return ioutil.WriteFile(xmlPath, []byte(presentationRelContent), 0755)
 }
