@@ -27,14 +27,14 @@ func ReplaceTextInFile(filename string, replacements []m.SlideReplacement)error 
 	return nil
 }
 
-func CopyFile(sourceImageFilename, targetImageFilename string) error {
-	r, err := os.Open(sourceImageFilename)
+func CopyFile(sourceFilename, targetFilename string) error {
+	r, err := os.Open(sourceFilename)
 	if err != nil {
 		return err
 	}
 	defer r.Close()
 
-	w, err := os.Create(targetImageFilename)
+	w, err := os.Create(targetFilename)
 	if err != nil {
 		return err
 	}
