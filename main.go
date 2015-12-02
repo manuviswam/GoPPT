@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"io"
-	"strings"
-	"io/ioutil"
 
 	z "github.com/manuviswam/GoPPT/zipper"
+	m "github.com/manuviswam/GoPPT/model"
+	fo "github.com/manuviswam/GoPPT/fileops"
 )
 
 const (
@@ -19,9 +18,7 @@ const (
 	templateSlideName = "slide1.xml"
 )
 
-type SlideReplacement struct {
-	PlaceHolder, Replacement string
-}
+
 
 func main() {
 	sourcePPT := "Template.pptx"
@@ -36,18 +33,18 @@ func main() {
 
 	slidePath := filepath.Join(tempFolder,pptFolder,slideFolder,templateSlideName)
 
-	replacements := make([]SlideReplacement,1)
-	replacements = append(replacements,SlideReplacement{ PlaceHolder: "#title#", Replacement: "This is replaced title"})
-	replacements = append(replacements,SlideReplacement{ PlaceHolder: "#footer#", Replacement: "This is replaced footer"})
+	replacements := make([]m.SlideReplacement,1)
+	replacements = append(replacements,m.SlideReplacement{ PlaceHolder: "#title#", Replacement: "This is replaced title"})
+	replacements = append(replacements,m.SlideReplacement{ PlaceHolder: "#footer#", Replacement: "This is replaced footer"})
 
-	err = replaceText(getAbsolutePath(slidePath),replacements)
+	err = fo.ReplaceTextInFile(getAbsolutePath(slidePath),replacements)
 	if err != nil {
 		fmt.Println("Error while content replacing",err)
 	}
 
 	targetImgPath := filepath.Join(tempFolder,pptFolder,mediaFolder,templateImgName)
 
-	err = replaceImage(getAbsolutePath(newImage),getAbsolutePath(targetImgPath))
+	err = fo.CopyFile(getAbsolutePath(newImage),getAbsolutePath(targetImgPath))
 	if err != nil {
 		fmt.Println("Error while image replacing",err)
 	}
@@ -64,41 +61,4 @@ func getAbsolutePath(relPath string)string  {
 	return filepath.Join(wd, relPath)
 }
 
-func replaceText(filename string, replacements []SlideReplacement)error {
-	contentBytes,err := ioutil.ReadFile(filename)
-	if err != nil {
-		return err
-	}
 
-	content := string(contentBytes)
-
-	for _,replacement := range replacements  {
-		content = strings.Replace(content, replacement.PlaceHolder, replacement.Replacement, -1)
-	}
-
-	err = ioutil.WriteFile(filename,[]byte(content), 0755)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func replaceImage(sourceImageFilename, targetImageFilename string) error {
-	r, err := os.Open(sourceImageFilename)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-
-	w, err := os.Create(targetImageFilename)
-	if err != nil {
-		return err
-	}
-	defer w.Close()
-
-	_, err = io.Copy(w, r)
-	if err != nil {
-		return err
-	}
-	return nil
-}
